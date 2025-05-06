@@ -32,14 +32,12 @@ void* aligned_malloc(size_t size, size_t alignment) {
     // If malloc fails, return null (safety)
     if(raw == NULL) return NULL;
     uintptr_t raw_addr = (uintptr_t)raw; // convert to a type where we can do maf
-
-    uintptr_t adjusted = raw_addr + sizeof(void*); // this is the beginning of the actual memory space; not yet aligned, but what we have to work with
-    // raw ptr | alignment buffer space | aligned memory
+    // alignment buffer space | raw ptr | aligned memory
     uintptr_t misalignment = (raw_addr + sizeof(void*)) % alignment; // how far are we off from proper alignment? use a ptr type to work with ptr math
     // if misalignment == 0 ; the raw address + the size of the original malloc ptr lands us at a perfect alignment space. Thus, aligned address should be just "adjusted"
     // else, we add the misalignment to the adjusted address to get 
-    uintptr_t aligned_address = adjusted;
-    if(misalignment != 0) aligned_address = adjusted + (alignment-misalignment);
+    uintptr_t aligned_address = raw_addr + sizeof(void*);
+    if(misalignment != 0) aligned_address = (raw_addr +sizeof(void*)) + (alignment-misalignment);
 
     void** raw_def = (void**) aligned_address;
     *(raw_def-1) = raw; // store the malloc ptr right before the aligned address, so we don't need to keep track of it anywhere else 
