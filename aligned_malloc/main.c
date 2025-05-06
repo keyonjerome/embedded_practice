@@ -34,8 +34,8 @@ void* aligned_malloc(size_t size, size_t alignment) {
     uintptr_t raw_addr = (uintptr_t)raw; // convert to a type where we can do maf
     // alignment buffer space | raw ptr | aligned memory
     uintptr_t misalignment = (raw_addr + sizeof(void*)) % alignment; // how far are we off from proper alignment? use a ptr type to work with ptr math
-    // if misalignment == 0 ; the raw address + the size of the original malloc ptr lands us at a perfect alignment space. Thus, aligned address should be just "adjusted"
-    // else, we add the misalignment to the adjusted address to get 
+    // if misalignment == 0 ; the raw address + the size of the original malloc ptr lands us at a perfect alignment space. Thus, aligned address should be just that!
+    // else, we add the misalignment to the adjusted address to get to the proper spot
     uintptr_t aligned_address = raw_addr + sizeof(void*);
     if(misalignment != 0) aligned_address = (raw_addr +sizeof(void*)) + (alignment-misalignment);
 
