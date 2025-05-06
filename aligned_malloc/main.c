@@ -50,28 +50,38 @@ void aligned_free(void* ptr) {
     //free(*((void**) ptr) -1 );
     // Be so, so careful with this. The above doesn't work. The below does. Why? We need to make sure that before we do any pointer arithmetic, we convert to a 
     // void** type, or it won't work, as void* has no type defined--you can't do any pointer or size arithmetic on it.
-    // So we convert it to void**. Great. Now, we can do pointer arithmetic, and we subtract 1 to get to the location of the 
+    // So we convert it to void**. Great. Now, we can do pointer arithmetic, and we subtract 1 to get to the location of the original malloc() pointer.
     free(*(((void**) ptr) -1 ));
 
 }
 
 
 int main() {
-    size_t size = 100;
-    size_t alignment = 64;
-    
-    void* ptr = aligned_malloc(size, alignment);
-    if (!ptr) {
-        printf("Allocation failed\n");
-        return 1;
+    size_t alignments[] = {8, 16, 32, 64, 128, 256, 512, 1024};
+    size_t sizes[] = {1, 13, 64, 100, 255, 512, 1023, 2048};
+    int num_alignments = sizeof(alignments) / sizeof(alignments[0]);
+    int num_sizes = sizeof(sizes) / sizeof(sizes[0]);
+
+    for (int i = 0; i < num_alignments; i++) {
+        for (int j = 0; j < num_sizes; j++) {
+            size_t alignment = alignments[i];
+            size_t size = sizes[j];
+            void* ptr = aligned_malloc(size, alignment);
+
+            if (!ptr) {
+                printf("FAILED: malloc(%zu bytes, alignment %zu): Allocation failed\n", size, alignment);
+                continue;
+            }
+
+            if (((uintptr_t)ptr % alignment) != 0) {
+                printf("FAILED: malloc(%zu bytes, alignment %zu): Misaligned pointer: %p\n", size, alignment, ptr);
+            } else {
+                printf("PASS: malloc(%zu bytes, alignment %zu): Aligned pointer: %p\n", size, alignment, ptr);
+            }
+
+            aligned_free(ptr);
+        }
     }
 
-    if (((uintptr_t)ptr % alignment) != 0) {
-        printf("Pointer is not aligned!\n");
-    } else {
-        printf("Success! Aligned pointer: %p\n", ptr);
-    }
-
-    aligned_free(ptr);
     return 0;
 }
