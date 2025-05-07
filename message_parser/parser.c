@@ -70,6 +70,10 @@ void parser_process_byte(uint8_t byte) {
         case IN_PROGRESS:
             switch(msg_field_state) {
                 case LENGTH:
+                    if (byte < 1) {
+                        printf("Invalid length.\r\n");
+                        break;
+                    }
                     current_msg.running_checksum ^= byte;
                     current_msg.length = byte;
                     msg_field_state = COMMAND;
@@ -117,15 +121,4 @@ void parser_process_byte(uint8_t byte) {
             break;
     }
 
-}
-// Simple log function for the parsed message
-void on_message_parsed(uint8_t command, const uint8_t* payload, uint8_t length) {
-    printf("Parsed message:\n");
-    printf("  Command: 0x%02X\n", command);
-    printf("  Payload Length: %d\n", length);
-    printf("  Payload: ");
-    for (uint8_t i = 0; i < length; i++) {
-        printf("0x%02X ", payload[i]);
-    }
-    printf("\n");
 }
