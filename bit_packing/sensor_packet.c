@@ -10,6 +10,20 @@
 [3:0]   Status Flags      (4 bits)
 */
 
+typedef union {
+    uint32_t raw_data;
+    
+    struct {
+        uint8_t sensor_type : 2;
+        uint8_t sensor_id : 6;
+        int16_t temperature_celsius : 12;
+        uint8_t humidity_percent : 8;
+        uint8_t status: 4;
+    };
+} SensorPacket;
+
+
+
 
 uint32_t encode_packet(uint8_t sensor_type, uint8_t sensor_id, int16_t temperature, uint8_t humidity, uint8_t status_flags) {
     
@@ -51,4 +65,13 @@ void decode_packet(uint32_t packet, uint8_t* sensor_type, uint8_t* sensor_id, in
 
     *humidity =  (uint8_t) ((packet >> 4) & ((1 << 8) - 1));
     *status_flags = (uint8_t) (packet & ((1 << 4)-1));
+}
+void decode_packet_union(uint32_t packet, uint8_t* sensor_type, uint8_t* sensor_id, int16_t* temperature, uint8_t* humidity, uint8_t* status_flags) {
+    SensorPacket data = {};
+    data.raw_data = packet;
+    *sensor_type = data.sensor_type;
+    *sensor_id = data.sensor_id;
+    *temperature = data.temperature_celsius;
+    *humidity = data.humidity_percent;
+    *status_flags = data.status;
 }
