@@ -1,5 +1,10 @@
 #include "event_queue.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#define TOTAL_EVENTS 100
+#define MAX_PAYLOAD_SIZE 8
 
 void print_event(const Event* e) {
     printf("Event timestamp: %u, type: %d, payload_len: %u, payload: ",
@@ -10,42 +15,56 @@ void print_event(const Event* e) {
     printf("\n");
 }
 
-
 int main() {
     EventQueue q;
     queue_init(&q);
+    srand((unsigned int) time(NULL));
 
-    // 1. Create and push 3 events
-    for(int i = 0; i < 3; i++) {
-        Event x = {
-            .event = EVENT_HIGH,
-            .payload = {i,i+1,i+2,i+3,i+4,i+5},
-            .payload_length = 6,
-            .timestamp = i
-        };
-        queue_push(&q,&x);
-    };
-
-    // 2. Pop 2 events and print them
-    Event temp  = {};
-    queue_pop(&q,&temp);
-    printf("Event with timestamp %i : %i\r\n",temp.timestamp,temp.event);
-    queue_pop(&q,&temp);
-    printf("Event with timestamp %i : %i\r\n",temp.timestamp,temp.event);
-    // 3. Push 1 more event
-    Event push = {
-        .event = EVENT_LOW,
-        .payload = {-1,-1,-1,-1},
-        .payload_length=4,
-        .timestamp = 20
-    };
-    queue_push(&q,&push);
-    // 4. Pop all remaining and print them
-    while(!queue_is_empty(&q)) {
-        Event temp  = {};
-        queue_pop(&q,&temp);
-        printf("Event with timestamp %i : %i\r\n",temp.timestamp,temp.event);
+    // Check queue is empty initially
+    if (!queue_is_empty(&q)) {
+        printf("Error: queue should be empty after init\n");
+        return 1;
     }
 
+    // Push TOTAL_EVENTS events with random payloads
+    for (int i = 0; i < TOTAL_EVENTS; i++) {
+        Event e = {
+            .timestamp = i,
+            .event = rand() % 3, // Assuming 3 EventType values: 0, 1, 2
+            .payload_length = rand() % (MAX_PAYLOAD_SIZE + 1)
+        };
+
+        for (int j = 0; j < e.payload_length; j++) {
+            e.payload[j] = rand() % 256;
+        }
+
+        if (!queue_push(&q, &e)) {
+            printf("Push failed at index %d\n", i);
+            return 1;
+        }
+    }
+
+    if (queue_is_empty(&q)) {
+        printf("Error: queue should not be empty after pushes\n");
+        return 1;
+    }
+
+    // Pop all events and print
+    for (int i = 0; i < TOTAL_EVENTS; i++) {
+        Event e;
+        if (!queue_pop(&q, &e)) {
+            printf("Pop failed at index %d\n", i);
+            return 1;
+        }
+        print_event(&e);
+    }
+
+    // Confirm queue is empty after all pops
+    if (!queue_is_empty(&q)) {
+        printf("Error: queue should be empty after popping all events\n");
+        return 1;
+    }
+
+    printf("All tests passed.\n");
     return 0;
 }
