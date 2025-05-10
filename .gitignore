@@ -1,5 +1,6 @@
 main
 stack_test
 test_parser
+event_queue_test
 *.o
 settings.json
