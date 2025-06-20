@@ -33,6 +33,5 @@ bool ring_buffer_is_empty(const RingBuffer* rb) {
 }
 
 bool ring_buffer_is_full(const RingBuffer* rb) {
-    // Implement in your solution
     return rb->full;
 }
